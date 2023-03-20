@@ -1,0 +1,64 @@
+name: Deploy Staging
+run-name: Deploy ${{ inputs.tag }} to Staging by @${{ github.actor }}
+
+on:
+  workflow_dispatch:
+    inputs:
+      tag:
+        description: 'Container tag to deploy, make sure the image exists in ECR repository'
+        required: true
+        default: ""
+      deploy-staging:
+        description: 'Deploy to Staging'
+        type: boolean
+        default: true
+
+permissions:
+  id-token: write
+  contents: write
+
+jobs:
+  # This is only a fail-fast sanity check! The tag existing in git does not mean an image was pushed to ECR!
+  deploy:
+    environment: staging
+    runs-on: ubuntu-latest
+
+    permissions:
+      id-token: write
+      contents: write
+
+    steps:
+      - uses: actions/checkout@v3
+      - name: Install Helm
+        uses: azure/setup-helm@v3
+        with:
+          version: 3.8.2
+
+      - name: Configure AWS Credentials
+        uses: aws-actions/configure-aws-credentials@v2
+        with:
+          aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
+          aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+          aws-region: us-east-2
+
+      - name: Helm ECR Login
+        run: |
+          aws ecr get-login-password \
+          --region ${{ inputs.aws-region }} | helm registry login \
+          --username AWS \
+          --password-stdin 563547372653.dkr.ecr.us-east-1.amazonaws.com
+
+      - name: Get Honeycomb Cluster Authentication
+        run:
+          aws eks update-kubeconfig --name staging --region us-east-1
+
+      - name: Deploy to Honeycomb ${{ inputs.env }}
+        id: deploy
+        run: |
+          
+          helm upgrade --install revolut ./chart --set image.tag=${TAG} 
+
+      - name: Rollback on cancel or failure
+        if: ${{ always() && (steps.deploy.conclusion == 'cancelled' || steps.deploy.conclusion == 'failure') }}
+        run: helm rollback 0
+
