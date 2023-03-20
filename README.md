@@ -70,12 +70,19 @@ docker build -t revolut .
 - &#9745; Terraform
 - &#9745; Application Rest API
 - &#9745; Helm Chart
-
+- &#9745; Docker Compose
+- &#9745; CI Pipeline
+- &#9745; CD Pipeline
 - &#9746; Unit Test
-- &#9746; CI/CD Pipeline
 
+Due to time constraints and knowledge gap I couldn't accomplish the unit testing, but I do understand the fundamentals from an infrastructure and provisioning perspective.
 
-The application is deployed on a EKS Kubernetes Cluster, the deployment is highly available. 
+The application is deployed on a EKS Kubernetes Cluster, the deployment is highly available, one pod in every region of us-east-1, this allows for rolling upgrades through helm to occurs without downtime. 
+The database is a simple mysql, but in a production environment it would have to deployed in a cluster configuration allowing multiple read nodes and one write node to allow for faster reads and bottlenecks of database connections can be avoided as much as possible.
+If high traffic is incoming into the application, a redis cluster can be considered as well to track the most queried users and have them readily available so we don't overload the database.
+
+The main pipelines are CI/CD where as CI is used to build the application and push it to a remote repository, I've set it up in such a way that git tags are used to keep the repo in version control and deployments are used with git tags such as `v1.0.1`, there is a github action whose purpose is to bump the version on every merge to main
+Of course since I couldn't finish the unit testing, this is the step where we would run tests on every commit to the branch and fail the pipeline if there were any errors, again this is possible but ran out of time.
 
 
 # Application
@@ -190,7 +197,7 @@ docker build -t revolut .
 ```
 
 ## Build Layer
-The buidl layer also ueses the same `FROM gradle:7.4.2-jdk17` and generates the jar artifact that will be passed on to the final application layer
+The build layer also uses the same `FROM gradle:7.4.2-jdk17` and generates the jar artifact that will be passed on to the final application layer
 
 ## Application Layer
 
@@ -246,7 +253,7 @@ To run the application for local development in its entirety I run docker compos
 
 # Kubernetes
 
-To deploy the applicaiton I've created a helm chart that will deploy the following resources
+To deploy the application I've created a helm chart that will deploy the following resources
 
 - Deployment
 - HPA
@@ -255,7 +262,7 @@ To deploy the applicaiton I've created a helm chart that will deploy the followi
 
 This does expect some sort of ingress controller already installed in the cluster, for example purposes I use nginx ingress controller but anything else can be used and the `ingres.yaml` would have to be changed accordingly
 
-The manual deployment can be exectued by running 
+The manual deployment can be executed by running 
 ```bash
 helm install revolut chart
 ```
@@ -263,10 +270,10 @@ helm install revolut chart
 This will deploy the contents of the helm chart into kubernetes, the `values.yaml` will have to be modified to use the ECR repository URL
 ```yaml
 image:
-  repository: someECRRepository
+  repository: 563547372653.dkr.ecr.us-east-1.amazonaws.com/demo-repo
   pullPolicy: IfNotPresent
   # Overrides the image tag whose default is the chart appVersion.
-  tag: "latest"
+  tag: "v1.0.1"
 ```
 
 I've attached also an ECR directory that can be deployed via terraform to deploy this as well

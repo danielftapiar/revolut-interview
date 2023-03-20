@@ -3,7 +3,11 @@ name: CI Pipeline
 on:
   push:
     branches:
-      - main
+      - "*"
+
+permissions:
+  id-token: write
+  contents: write
 
 jobs:
   build-and-push:
@@ -12,12 +16,14 @@ jobs:
     steps:
       - name: Checkout code
         uses: actions/checkout@v3
+
       - name: Bump version and push tag
         uses: anothrNick/github-tag-action@v1
+        id: version
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
           WITH_V: true
-          DEFAULT_BUMP: minor
+          DEFAULT_BUMP: patch
           RELEASE_BRANCHES: main
 
       - name: Set up Java
@@ -28,25 +34,25 @@ jobs:
           distribution: 'temurin'
           cache: 'gradle'
 
-      - name: Build Docker image
-        uses: docker/build-push-action@v4.0.0
+      - name: Configure AWS Credentials
+        uses: aws-actions/configure-aws-credentials@v2
         with:
-          context: .
-          push: true
-          tags: 563547372653.dkr.ecr.us-east-1.amazonaws.com/demo-repo:latest
-          build-args: |
-            JAR_FILE=target/*.jar
+          aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
+          aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+          aws-region: us-east-2
 
       - name: Login to Amazon ECR
         id: login-ecr
         uses: aws-actions/amazon-ecr-login@v1
-        with:
-          registry: ecr-repository-url
-          aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
-          aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
-          aws-region: us-east-1
 
-      - name: Push Docker image to ECR
+      - name: Build Push Docker image to ECR
         run: |
-          docker tag ecr-repository-url:latest ecr-repository-url:latest
-          docker push ecr-repository-url:latest
+          git describe --tags > version
+          aws ecr get-login-password \
+            --region us-east-1 \
+          | docker login \
+          --username AWS \
+          --password-stdin 563547372653.dkr.ecr.us-east-1.amazonaws.com
+          docker build -t demo-repo .
+          docker tag demo-repo:latest 563547372653.dkr.ecr.us-east-1.amazonaws.com/demo-repo:$(cat version)
+          docker push 563547372653.dkr.ecr.us-east-1.amazonaws.com/demo-repo:$(cat version)
