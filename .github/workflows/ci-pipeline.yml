@@ -5,6 +5,10 @@ on:
     branches:
       - "*"
 
+permissions:
+  id-token: write
+  contents: write
+
 jobs:
   build-and-push:
     runs-on: ubuntu-latest
@@ -28,15 +32,6 @@ jobs:
           distribution: 'temurin'
           cache: 'gradle'
 
-      - name: Build Docker image
-        uses: docker/build-push-action@v4.0.0
-        with:
-          context: .
-          push: true
-          tags: 563547372653.dkr.ecr.us-east-1.amazonaws.com/demo-repo:latest
-          build-args: |
-            JAR_FILE=target/*.jar
-
       - name: Login to Amazon ECR
         id: login-ecr
         uses: aws-actions/amazon-ecr-login@v1
@@ -46,7 +41,8 @@ jobs:
           aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
           aws-region: us-east-1
 
-      - name: Push Docker image to ECR
+      - name: Build Push Docker image to ECR
         run: |
-          docker tag ecr-repository-url:latest ecr-repository-url:latest
-          docker push ecr-repository-url:latest
+          docker build -t demo-repo .
+          docker tag demo-repo:latest 563547372653.dkr.ecr.us-east-1.amazonaws.com/demo-repo:latest
+          docker push 563547372653.dkr.ecr.us-east-1.amazonaws.com/demo-repo:latest
