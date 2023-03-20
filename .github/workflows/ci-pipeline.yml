@@ -15,8 +15,11 @@ jobs:
 
       - name: Set up Java
         uses: actions/setup-java@v3.10.0
+
         with:
           java-version: '17'
+          distribution: 'temurin'
+          cache: 'gradle'
 
       - name: Build Docker image
         uses: docker/build-push-action@v4.0.0
