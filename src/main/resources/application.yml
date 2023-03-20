@@ -1,8 +1,8 @@
 spring:
   datasource:
     url: "${DB_URL}"
-    username: "${DB_USERNAME}"
-    password: "${DB_PASSWORD}"
+    username: "${MYSQL_USER}"
+    password: "${MYSQL_ROOT_PASSWORD}"
     driver-class-name: "com.mysql.cj.jdbc.Driver"
 
   jpa:
@@ -12,6 +12,6 @@ spring:
       ddl-auto: "update"
 
 server:
-  port: ${PORT}
+  port: "${PORT}"
 #  servlet:
 #    contextPath: "/api/v1"

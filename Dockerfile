@@ -1,19 +1,18 @@
-FROM gradle:7.6.1-jdk17  as cache
+FROM gradle:7.4.2-jdk17  as cache
 RUN mkdir -p /home/gradle/cache_home
 ENV GRADLE_USER_HOME /home/gradle/cache_home
-COPY build.gradle /home/gradle/java-code/
-WORKDIR /home/gradle/java-code
-RUN gradle clean build -i --stacktrace
+WORKDIR /app
+COPY . /app
+RUN gradle clean build -x test -i --stacktrace
 
 
-FROM gradle:7.6.1-jdk17 as builder
+FROM gradle:7.4.2-jdk17 as builder
 COPY --from=cache /home/gradle/cache_home /home/gradle/.gradle
-EXPOSE 8080
 WORKDIR /app
 COPY . /app
 RUN gradle bootJar
 
-FROM openjdk:19-jdk-slim-buster as app
+FROM openjdk:17-jdk-slim-buster as app
 WORKDIR /app
-COPY --from=builder /app/app.jar /app/app.jar
-ENTRYPOINT ["java","-jar","/app.jar"]
+COPY --from=builder /app/build/revolut-0.0.1-SNAPSHOT.jar /app/app.jar
+ENTRYPOINT ["java","-jar","/app/app.jar"]

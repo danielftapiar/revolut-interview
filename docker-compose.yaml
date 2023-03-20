@@ -1,0 +1,41 @@
+version: '3.7'
+
+x-common-variables: &common-variables
+  MYSQL_ROOT_PASSWORD: "root"
+  MYSQL_DATABASE: "user"
+
+services:
+  app:
+    image: revolut-interview:build
+    build:
+      context: .
+    environment:
+      <<: *common-variables
+      PORT: 3000
+      DB_URL: "jdbc:mysql://db:3306/user?autoReconnect=true&useSSL=false"
+      MYSQL_USER: "root"
+    networks:
+      - main
+    ports:
+    - '3000:3000'
+    command: ["java", "-jar", " /app/app.jar"]
+    depends_on:
+    - db
+  db:
+    image: mysql:5.7
+    environment:
+      <<: *common-variables
+    ports:
+      - '3306:3306'
+    networks:
+      - main
+networks:
+  main:
+    driver: bridge
+    name: "main"
+    ipam:
+      driver: default
+      config:
+      - subnet: 10.5.0.0/16
+        ip_range: 10.5.0.0/24
+        gateway: 10.5.0.1
