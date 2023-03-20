@@ -10,8 +10,16 @@ jobs:
     runs-on: ubuntu-latest
 
     steps:
+      -
       - name: Checkout code
         uses: actions/checkout@v3
+      - name: Bump version and push tag
+        uses: anothrNick/github-tag-action@v1
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          WITH_V: true
+          DEFAULT_BUMP: minor
+          RELEASE_BRANCHES: main
 
       - name: Set up Java
         uses: actions/setup-java@v3.10.0
@@ -26,7 +34,7 @@ jobs:
         with:
           context: .
           push: true
-          tags: ecr-repository-url:latest
+          tags: 563547372653.dkr.ecr.us-east-1.amazonaws.com/demo-repo:latest
           build-args: |
             JAR_FILE=target/*.jar
 
