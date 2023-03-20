@@ -276,6 +276,7 @@ image:
   tag: "v1.0.1"
 ```
 
-I've attached also an ECR directory that can be deployed via terraform to deploy this as well
+I've attached also an ECR directory that can be deployed via terraform to deploy this as well, a succesful upload through the CI pipeline can be seen here
+![localImage](./ecr-succesful.png)
 
 
