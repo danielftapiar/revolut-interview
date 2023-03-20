@@ -19,6 +19,7 @@ jobs:
 
       - name: Bump version and push tag
         uses: anothrNick/github-tag-action@v1
+        id: version
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
           WITH_V: true
@@ -45,7 +46,10 @@ jobs:
         uses: aws-actions/amazon-ecr-login@v1
 
       - name: Build Push Docker image to ECR
+        needs:
+          -
         run: |
+          git describe --tags > version
           docker build -t demo-repo .
-          docker tag demo-repo:latest 563547372653.dkr.ecr.us-east-1.amazonaws.com/demo-repo:latest
-          docker push 563547372653.dkr.ecr.us-east-1.amazonaws.com/demo-repo:latest
+          docker tag demo-repo:latest 563547372653.dkr.ecr.us-east-1.amazonaws.com/demo-repo:$(cat version)
+          docker push 563547372653.dkr.ecr.us-east-1.amazonaws.com/demo-repo:$(cat version)
