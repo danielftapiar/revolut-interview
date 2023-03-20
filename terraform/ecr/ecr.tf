@@ -1,5 +1,5 @@
-resource "aws_ecr_repository" "application" {
-  name                 = "revolut-image-repository"
+resource "aws_ecr_repository" "revolut_application" {
+  name                 = "demo-repo"
   image_tag_mutability = "IMMUTABLE"
 
   image_scanning_configuration {
@@ -8,7 +8,7 @@ resource "aws_ecr_repository" "application" {
 }
 
 resource "aws_ecr_lifecycle_policy" "application" {
-  repository = aws_ecr_repository.application.name
+  repository = aws_ecr_repository.revolut_application.name
 
   policy = <<EOF
 {

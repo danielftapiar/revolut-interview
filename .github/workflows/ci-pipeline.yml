@@ -48,6 +48,11 @@ jobs:
       - name: Build Push Docker image to ECR
         run: |
           git describe --tags > version
+          aws ecr get-login-password \
+            --region us-east-1 \
+          | docker login \
+          --username AWS \
+          --password-stdin 563547372653.dkr.ecr.us-east-1.amazonaws.com
           docker build -t demo-repo .
           docker tag demo-repo:latest 563547372653.dkr.ecr.us-east-1.amazonaws.com/demo-repo:$(cat version)
           docker push 563547372653.dkr.ecr.us-east-1.amazonaws.com/demo-repo:$(cat version)
