@@ -46,8 +46,6 @@ jobs:
         uses: aws-actions/amazon-ecr-login@v1
 
       - name: Build Push Docker image to ECR
-        needs:
-          -
         run: |
           git describe --tags > version
           docker build -t demo-repo .

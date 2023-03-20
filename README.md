@@ -80,7 +80,8 @@ The application is deployed on a EKS Kubernetes Cluster, the deployment is highl
 The database is a simple mysql, but in a production environment it would have to deployed in a cluster configuration allowing multiple read nodes and one write node to allow for faster reads and bottlenecks of database connections can be avoided as much as possible.
 If high traffic is incoming into the application, a redis cluster can be considered as well to track the most queried users and have them readily available so we don't overload the database.
 
-The main pipelines are CI/CD where as CI is used to build the application and push it to a remote repository, I've set it up in such a way that 
+The main pipelines are CI/CD where as CI is used to build the application and push it to a remote repository, I've set it up in such a way that git tags are used to keep the repo in version control and deployments are used with git tags such as `v1.0.1`, there is a github action whose purpose is to bump the version on every merge to main
+Of course since I couldn't finish the unit testing, this is the step where we would run tests on every commit to the branch and fail the pipeline if there were any errors, again this is possible but ran out of time.
 
 
 # Application
