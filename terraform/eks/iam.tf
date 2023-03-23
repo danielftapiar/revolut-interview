@@ -80,7 +80,3 @@ resource "aws_iam_group_policy_attachment" "cloudshell_full_access" {
 # aws sts assume-role \
 #   --role-arn arn:aws:iam::001066253573:role/eks-admin \
 #   --role-session-name manager-session \
-
-
-# TEST ACCESSKEY: AKIAQAP4NXUC3YVL5RS6
-# TEST SECRETKEY: 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
